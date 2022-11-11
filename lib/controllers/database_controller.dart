@@ -49,11 +49,33 @@ class DatabaseController {
         columns: [idColumn, nameColumn, emailColumn, phoneColumn],
         where: "$idColumn = ?",
         whereArgs: [id]);
-    if (mapsContact.length > 0) {
+    if (mapsContact.isNotEmpty) {
       return Contact.fromMap(mapsContact.first);
     } else {
       return null;
     }
+  }
+
+  Future<int> deleteContact(int id) async {
+    Database dbContact = await db;
+    return await dbContact
+        .delete(contactTable, where: "$idColumn = ?", whereArgs: [id]);
+  }
+
+  Future<int> updateContact(Contact contact) async {
+    Database dbContact = await db;
+    return await dbContact.update(contactTable, contact.toMap(),
+        where: "$idColumn = ?", whereArgs: [contact.id]);
+  }
+
+  Future<List> getAllContacts() async {
+    Database dbContat = await db;
+    List listMap = await dbContat.rawQuery("SELECT * FROM $contactTable");
+    List<Contact> listContact = [];
+    for (Map m in listMap) {
+      listContact.add(Contact.fromMap(m));
+    }
+    return listContact;
   }
 }
 
