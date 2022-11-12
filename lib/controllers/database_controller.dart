@@ -18,24 +18,30 @@ class DatabaseController {
   late Database _db;
 
   Future<Database> get db async {
-    if (_db != null) {
-      return _db;
-    } else {
-      _db = await initDb();
-      return _db;
-    }
+    await initDb();
+    return _db;
   }
 
-  Future<Database> initDb() async {
-    final databasePath = await getDatabasesPath();
-    final path = p.join(databasePath, "contactsnew.db");
-
-    return await openDatabase(path, version: 1,
-        onCreate: (Database db, int newerVersion) async {
-      await db.execute(
-          "CREATE TABLE $contactTable($idColumn INTEGER PRIMARY KEY, $nameColumn TEXT, $emailColumn TEXT, $phoneColumn TEXT)");
-    });
+  Future<void> initDb() async {
+    final database =
+        openDatabase(p.join(await getDatabasesPath(), 'contactsnew.db'),
+            onCreate: (db, version) {
+      return db.execute(
+        'CREATE TABLE $contactTable($idColumn INTEGER PRIMARY KEY, $nameColumn TEXT, $emailColumn TEXT, $phoneColumn TEXT)',
+      );
+    }, version: 1);
   }
+
+  // Future<Database> xxDB() async {
+  //   final databasePath = await getDatabasesPath();
+  //   final path = p.join(databasePath, "contactsnew.db");
+
+  //   return await openDatabase(path, version: 1,
+  //       onCreate: (Database db, int newerVersion) async {
+  //     await db.execute(
+  //         "CREATE TABLE $contactTable($idColumn INTEGER PRIMARY KEY, $nameColumn TEXT, $emailColumn TEXT, $phoneColumn TEXT)");
+  //   });
+  // }
 
   Future<Contact> saveContact(Contact contact) async {
     Database dbContact = await db;
@@ -68,7 +74,7 @@ class DatabaseController {
         where: "$idColumn = ?", whereArgs: [contact.id]);
   }
 
-  Future<List> getAllContacts() async {
+  Future<List<Contact>> getAllContacts() async {
     Database dbContat = await db;
     List listMap = await dbContat.rawQuery("SELECT * FROM $contactTable");
     List<Contact> listContact = [];
